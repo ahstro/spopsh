@@ -53,7 +53,7 @@ var customCommands = [
     {
         name: 'clear',
         args: '',
-        summary: 'clears the screen, same as ctrl+u'
+        summary: 'clears the screen, same as ctrl+l'
     }
 ];
 
@@ -166,7 +166,6 @@ function parse(cmd, json) {
         case 'play':
             var stat, song;
             if(json.status === 'playing' || json.status === 'paused' ) {
-                //stat = json.status === 'playing' ? '♪'.win + ' Playing: ' :  '▮▮'.yellow + ' Paused: ';
                 stat = json.status === 'playing' ? '♪' + ' Playing: ' :  '▮▮' + ' Paused: ';
                 song = json.artist  + ' - ' + json.title + ' - ' + json.album;
             } else {
@@ -175,9 +174,9 @@ function parse(cmd, json) {
             }
             var shuffle = ' Shuffle: ' + (json.shuffle ? '↝' : '→');
             var repeat = ' Repeat: ' + (json.repeat ? '↺' : '→');
-            var track = ' Track: ' + (json.current_track || ' ') + '/' + json.total_tracks;
-            //TODO: output += getTime(json.position * 1000) + '/' + getTime(json.duration) + '\n';
-            var spacer = getSpacer([stat, song], [repeat, shuffle, track]);
+            var track = ' Track: ' + (json.current_track || 'X') + '/' + json.total_tracks;
+            var progress = ' ' + getTime(json.position * 1000) + '/' + getTime(json.duration);
+            var spacer = getSpacer([stat, song], [repeat, shuffle, track, progress]);
             stat = stat.replace(/[♪▮■]/g, function(p1) {
                 if(p1 === '♪') {
                     return '♪'.win;
@@ -187,7 +186,7 @@ function parse(cmd, json) {
                     return '■'.error;
                 }
             });
-            output += stat + song + spacer + repeat + shuffle + track + '\n';
+            output += stat + song + spacer + repeat + shuffle + track + progress + '\n';
             for(var i = 0; i < process.stdout.columns; i++) {
                 output += i < (json.position / (json.duration / 1000)) * process.stdout.columns ? '='.blue : '-'.info;
             }
@@ -221,7 +220,7 @@ function parse(cmd, json) {
             break;
 
         case 'about':
-            output = "spopsh is pretty much a prettifier of spop's telnet interface.\nYou can check out the spopsh's source code at https://github.com/ahstro/spopsh\nand spop over at https://github.com/Schnouki/spop\n  ❤ ahstro";
+            output = "spopsh is pretty much a prettifier of spop's telnet interface.\nYou can check out the spopsh's source code at https://github.com/ahstro/spopsh and spop over at https://github.com/Schnouki/spop\n  ❤ ahstro";
             break;
 
         // TODO: Add monitor command to show status dynamically
@@ -241,10 +240,14 @@ function alias(cmd) {
     // Aliases
     // TODO: Add to 'help' somehow
     switch(cmd) {
+        case 's':
+            return 'status';
+
+        case 'b':
         case 'q':
         case 'e':
         case 'exit':
-            return 'quit';
+            return 'bye';
 
         case 'n':
             return 'next';
