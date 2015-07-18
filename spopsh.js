@@ -30,7 +30,8 @@ rl.on('line', function(cmd) {
 
 telnet.on('ready', function() {
     console.log("Welcome to spopsh!\nType 'help' for a list of commands");
-    getCommand(process.argv[2]);
+    var args = process.argv.splice(2).join(' ');
+    getCommand(args);
 });
 
 telnet.on('error', function() {
@@ -56,6 +57,36 @@ var customCommands = [
     }
 ];
 
+function getPlaylist(json, i) {
+    var name = json.name || '★';
+    var index = json.index || i; // Can't get json if offline; i should be same
+    index = index < 10 ? '0' + index : index;
+    index += ' ';
+    var offline = ' [' + (json.offline ? '✓': '✕') + ']';
+    var spacer = getSpacer([index, name], [offline]);
+    // Setting color in the original declaration of 'offline'
+    // messes with the .length property used by getSpacer()
+    offline = offline.replace(/[✓✕]/, function(p1) {
+        return p1 === '✓' ? '✓'.win : '✕'.error;
+    });
+    return '\n' + index.info + (name === '★' ? name.yellow : name) + spacer + offline;
+}
+
+function getTrack(json) {
+    var index = (json.index < 10 ? '0' + json.index : json.index.toString());
+    var song = ' ' + json.artist + ' - ' + json.title;
+    var album = ' [' + json.album + '] ';
+    var time = getTime(json.duration);
+    var spacer = getSpacer([index, song], [album, time]);
+
+    // Grey out song if not available (offline doesn't grey. bug in spop?)
+    if(json.available) {
+        return '\n' + index.info + song + spacer + album + time.yellow;
+    } else {
+        return '\n' + index.grey + song.grey + spacer + album + time.grey;
+    }
+}
+
 function getSpacer(leftArr, rightArr) {
     var leftLength = 0;
     for(var i = 0; i < leftArr.length; i++) {
@@ -73,15 +104,20 @@ function getSpacer(leftArr, rightArr) {
 
 function getTime(duration) {
     var minutes = Math.floor((duration / 1000) / 60);
-    var seconds = (duration / 1000) % 60;
+    var seconds = Math.floor((duration / 1000) % 60);
         seconds = seconds < 10 ? '0' + seconds : seconds;
     return minutes + ':' + seconds;
 }
 
 function parse(cmd, json) {
+    cmd = cmd.split(' ');
     var output = '';
-    switch(cmd) {
+    switch(cmd[0]) {
         case 'help':
+            if(cmd[1]) {
+                output += "'help' doesn't take arguments";
+                break;
+            }
             output += "Available commands:".help;
             for(var i = 0; i < json.commands.length; i++) {
                 var name = json.commands[i].command;
@@ -99,21 +135,22 @@ function parse(cmd, json) {
             break;
 
         case 'ls':
-            output += "Playlists:".help;
-            for(var i = 0; i < json.playlists.length; i++) {
-                var name = json.playlists[i].name || '★';
-                var index = json.playlists[i].index || i; // Can't get json if offline; i should be same
-                index = index < 10 ? '0' + index : index;
-                index += ' ';
-                var offline = ' [' + (json.playlists[i].offline ? '✓': '✕') + ']';
-                var spacer = getSpacer([index, name], [offline]);
-                // Setting color in the original declaration of 'offline'
-                // messes with the .length property used by getSpacer()
-                offline = offline.replace(/[✓✕]/, function(p1) {
-                    return p1 === '✓' ? '✓'.win : '✕'.error;
-                });
-                output += '\n' + index.info + (name === '★' ? name.yellow : name) + spacer + offline;
+            if(!cmd[1]) {
+                // TODO: Add argument support
+                output += "Playlists:".help;
+                for(var i = 0; i < json.playlists.length; i++) {
+                    output += getPlaylist(json.playlists[i], i);
+                }
+            } else if (!isNaN(cmd[1]) && !cmd[2]) {
+                output += "Tracks:".help;
+                for(var i = 0; i < json.tracks.length; i++) {
+                    output += getTrack(json.tracks[i], i);
+                }
+            } else {
+                output += "'ls' doesn't take that many arguments";
+                // TODO: Add ability to search for playlist names
             }
+
             break;
 
         case 'next':
@@ -161,18 +198,7 @@ function parse(cmd, json) {
         case 'qls':
             output += "Queue:".help;
             for(var i = 0; i < json.tracks.length; i++) {
-                var index = (json.tracks[i].index < 10 ? '0' + json.tracks[i].index : json.tracks[i].index.toString());
-                var song = ' ' + json.tracks[i].artist + ' - ' + json.tracks[i].title;
-                var album = ' [' + json.tracks[i].album + '] ';
-                var time = getTime(json.tracks[i].duration);
-                var spacer = getSpacer([index, song], [album, time]);
-
-                // Grey out song if not available (offline doesn't grey. bug in spop?)
-                if(json.tracks[i].available) {
-                    output += '\n' + index.info + song + spacer + album + time.yellow;
-                } else {
-                    output += '\n' + index.grey + song.grey + spacer + album + time.grey;
-                }
+                output += getTrack(json.tracks[i]);
             }
             break;
 
