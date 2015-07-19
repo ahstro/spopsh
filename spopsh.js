@@ -153,6 +153,7 @@ function parse(cmd, json) {
 
             break;
 
+        case 'goto':
         case 'next':
         case 'prev':
         //TODO: Make sure these make sense
@@ -202,19 +203,116 @@ function parse(cmd, json) {
             break;
 
         case 'qrm':
+            // TODO: Say which song was removed. Add feature upstream?
+            if(!cmd[1]) {
+                output = "'qrm' takes at least one argument.";
+            } else if(!cmd[2]) {
+                output = 'Removed song number ' + cmd[1].info + ' from the queue.';
+            } else if(!cmd[3]) {
+                output = 'Removed songs ' + cmd[1].info + ' through ' + cmd[2].info + ' from the queue.';
+            } else {
+                output = "'qrm' doesn't take that many arguments.";
+            }
+            break;
+
         case 'add':
+            // TODO: Name of playlist. Add feature upstream?
+            if(!cmd[1]) {
+                output = "'add' takes at least one argument.";
+            } else if(!cmd[2]) {
+                output = 'Added playlist number ' + cmd[1].info + ' to the queue.';
+            } else if(!cmd[3]) {
+                output = 'Added song ' + cmd[1].info + ' from playlist number ' + cmd[2].info + ' to the queue.';
+            } else {
+                output = "'qrm' doesn't take that many arguments.";
+            }
+            break;
+
         case 'seek':
-        case 'goto':
+            // TODO: Allow seeking with min:sec instead of millisecs
+            if(!cmd[1]) {
+                output = "'seek' takes an argument.";
+            } else if(!cmd[2]) {
+                parse('status', json);
+            } else {
+                output = "'seek' doesn't take that many arguments.";
+            }
+            break;
+
+        case 'image':
+            if(json.status === 'ok') {
+                // TODO: require('fs') and 'opener', save and open
+                output += 'Trying to show the cover image with your default image viewer';
+                output += json.data;
+                //opener(json.data);
+            } else {
+                output += 'Something went wrong.';
+            }
+            output = json;
+            break;
+
+        case 'uinfo':
+            if(!cmd[1]) {
+                output += "'uinfo' takes an argument.";
+            } else if(!cmd[2]) {
+                switch(json.type) {
+                    case 'track':
+                        var artist = 'Artist: ';
+                        var title = ' Song: ';
+                        var album = ' Album: ';
+                        var duration = getTime(json.duration);
+                        var spacer = getSpacer([artist, json.artist, title, json.title, album, json.album], [duration]);
+                        output += artist.info + json.artist + title.info + json.title + album.info + json.album + spacer + duration.yellow;
+                        break;
+
+                    case 'playlist':
+                        // TODO
+                        output = json;
+                        break;
+
+                    case 'album':
+                        // TODO
+                        output = json;
+                        break;
+                }
+            } else {
+                output += "'uinfo' doesn't take that many arguments.";
+            }
+            break;
+
+        case 'search':
+            output += 'Search results for '.info + json.query.blue;
+
+            output += '\n\n' + json.total_tracks.toString().info + ' total tracks:';
+            for(var i = 0; i < json.tracks.length; i++) {
+                output += getTrack(json.tracks[i]);
+            }
+
+            output += '\n\n' + json.total_albums.toString().info + ' total albums:';
+            for(var i = 0; i < json.albums.length; i++) {
+                //output = JSON.stringify(json.albums[i]);
+                var index = i < 10 ? '0' + i : i.toString();
+                output += '\n' + index.info + ' ' + json.albums[i].artist + ' - ' + json.albums[i].title;
+            }
+
+            output += '\n\n' + json.total_artists.toString().info + ' total artists:';
+            for(var i = 0; i < json.artists.length; i++) {
+                var index = i < 10 ? '0' + i : i.toString();
+                output += '\n' + index.info + ' ' + json.artists[i].artist;
+            }
+
+            output += '\n\n' + json.total_playlists.toString().info + ' total playlists:';
+            for(var i = 0; i < json.playlists.length; i++) {
+                output += getPlaylist(json.playlists[i], i);
+            }
+            output = json;
+            break;
+
         case 'offline-status':
         case 'offline-toggle':
-        case 'image':
-        case 'uinfo':
         case 'uadd':
         case 'uplay':
         case 'uimage':
-        case 'search':
-        case 'bye':
-        case 'quit':
         case 'idle':
             output = json;
             break;
@@ -242,6 +340,10 @@ function alias(cmd) {
     switch(cmd) {
         case 's':
             return 'status';
+
+        case '': // Enter toggles playback
+        case 'pause':
+            return 'toggle';
 
         case 'b':
         case 'q':
