@@ -1,0 +1,29 @@
+{
+  "name": "spopsh",
+  "version": "0.1.0",
+  "description": "A CLI front-endy thing for spop",
+  "main": "spopsh.js",
+  "dependencies": {
+    "telnet-client": "^0.1.0",
+    "colors": "^1.1.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ahstro/spopsh.git"
+  },
+  "keywords": [
+    "spotify",
+    "music",
+    "spop"
+  ],
+  "author": "ahstro",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ahstro/spopsh/issues"
+  },
+  "homepage": "https://github.com/ahstro/spopsh#readme"
+}
