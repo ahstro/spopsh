@@ -389,26 +389,26 @@ function alias(cmd) {
     case 's':
       return 'status';
 
-    case '': // Enter toggles playback
     case 'pause':
+    case      '': // Enter toggles playback
       return 'toggle';
 
-    case 'b':
-    case 'q':
-    case 'e':
     case 'exit':
+    case    'b':
+    case    'q':
+    case    'e':
       return 'bye';
 
     case 'n':
       return 'next';
 
-    case 'p':
     case 'previous':
+    case        'p':
       return 'prev';
 
-    case 'dir':
-    case 'list':
     case 'playlists':
+    case      'list':
+    case       'dir':
       return 'ls';
 
     case 'clear':
