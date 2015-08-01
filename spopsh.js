@@ -349,6 +349,54 @@ function render(cmd, json) {
 
 
     case 'offline-status':
+      output += 'You have ' + json.offline_playlists.toString().info + ' offline playlist';
+      if(json.offline_playlists !== 1) output += 's';
+      output += ", which you can view using the 'ls' command";
+
+      if(json.tracks_to_sync > 0) {
+        output += '\nYou have ' + json.tracks_to_sync.toString().info + ' track';
+        if(json.tracks_to_sync !== 1) output += 's';
+        output += ' left to sync.';
+      }
+
+      if(json.sync_in_progress) {
+
+        output += '\nCurrently syncing ' + json.tracks_queued.toString().info + ' track';
+        if(json.tracks_queued !== 1) output += 's';
+
+        output += '\n' + json.tracks_copied.toString().info + ' track';
+        if(json.tracks_copied !== 1) output += 's';
+        output += ' has finished syncing.';
+
+        if(json.tracks_error > 0) {
+          output += '\nAn error occured while syncing ' + json.tracks_error.toString().info +
+                    ' track';
+          if(json.tracks_error !== 1) output += 's';
+        }
+
+        if(json.tracks_willnotcopy > 0) {
+          output += '\n' + json.tracks_error.toString().info +
+                    ' track';
+          if(json.tracks_willnotcopy !== 1) output += 's';
+          output += ' will not be synced.';
+        }
+
+      }
+
+      // Calculate time left before relogin is needed.
+      // spopd supplies the time in seconds, so daysa and hours
+      // are calculated by dividing the number by 60 (sec in min),
+      // 60 (min in hour), and 24 (hour in day).
+      var days  = Math.floor(json.time_before_relogin / 86400);
+      var hours = Math.floor((json.time_before_relogin % 86400) / 3600);
+      output += '\nYou need to log in again in ' + days.toString().info + ' day';
+      if(days !== 1) output += 's';
+      output += ' and ' + hours.toString().info + ' hour';
+      if(hours !== 1) output += 's';
+      output += '.';
+
+      break;
+
     case 'offline-toggle':
     case         'uimage':
     case          'uplay':
@@ -410,6 +458,10 @@ function alias(cmd) {
     case      'list':
     case       'dir':
       return 'ls';
+
+    case 'offlinestatus':
+    case            'os':
+      return 'offline-status';
 
     case 'clear':
       rl.write(null, {
