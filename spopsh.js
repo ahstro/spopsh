@@ -398,6 +398,23 @@ function render(cmd, json) {
       break;
 
     case 'offline-toggle':
+      //TODO: Show name of toggled playlist. Add feature upstream?
+      if(!cmd[1]) {
+        output += "'offline-toggle' takes a playlist number as an argument";
+      } else if(cmd[1] && !cmd[2]) {
+        output += 'The playlist you selected ';
+        if(json.offline) {
+          output += "should now be syncing and will be available offline soon. " +
+            "Check the status using the 'offline-status'-command";
+        } else {
+          output += 'will no longer be available for offline listening ' +
+            'and the cached tracks have been removed.';
+        }
+      } else {
+        output += "'offline-toggle' doesn't take that many arguments.";
+      }
+      break;
+
     case         'uimage':
     case          'uplay':
     case           'uadd':
