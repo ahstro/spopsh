@@ -1,6 +1,7 @@
 // Whoo! Welcome to spopsh's source code!! ❤ ahstro \\
 
 // TODO:
+// Alias commands with arguments
 // Refactor all render code into separate functions
 // Merge promptForInput() into execute()
 // Add external ip support
@@ -297,7 +298,7 @@ function render(cmd, json) {
             var album    = ' Album: ';
             var spacer   = getSpacer([artist, json.artist,
                                       title,  json.title,
-                                      album,  json.album], 
+                                      album,  json.album],
                                      [duration]);
             output += artist.info + json.artist + title.info + json.title +
                       album.info  + json.album  + spacer     + duration.yellow;
@@ -320,6 +321,7 @@ function render(cmd, json) {
 
 
     case 'search':
+      // TODO: Empty search gives TypeError
       output += 'Search results for '.info + json.query.blue;
 
       output += '\n\n' + json.total_tracks.toString().info + ' total tracks:';
@@ -415,10 +417,10 @@ function render(cmd, json) {
       }
       break;
 
-    case         'uimage':
-    case          'uplay':
-    case           'uadd':
-    case           'idle':
+    case 'uimage':
+    case  'uplay':
+    case   'uadd':
+    case   'idle':
       output = json;
       break;
 
