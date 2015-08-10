@@ -5,11 +5,12 @@
   "main": "spopsh.js",
   "dependencies": {
     "telnet-client": "^0.1.0",
-    "colors": "^1.1.2"
+    "colors": "^1.1.2",
+    "standard": "^3.0.0"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "standard"
   },
   "repository": {
     "type": "git",
